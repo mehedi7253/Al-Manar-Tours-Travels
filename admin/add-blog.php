@@ -1,0 +1,203 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: ASUS
+ * Date: 11/5/2020
+ * Time: 2:33 PM
+ */
+session_start();
+if (!isset($_SESSION['email'])){
+    header('Location: ../index.php');
+}
+
+require_once '../php/db_connect.php';?>
+<?php include "front/header.php"; ?>
+
+<body id="page-top">
+
+<?php include "front/nav.php";?>
+
+
+
+<div id="wrapper">
+    <?php include "front/sidebar.php";?>
+
+    <div id="content-wrapper">
+
+        <div class="container-fluid">
+
+            <!-- Breadcrumbs-->
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="admin_dashboard.php">Dashboard</a>
+                </li>
+                <li class="breadcrumb-item active">Add New Blog</li>
+            </ol>
+
+            <!-- Icon Cards-->
+            <div class="row">
+                <div class="col-md-10 mx-auto mt-4 mb-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Add New Blog <span class="float-right"><a class="btn btn-info" href="manage-blog.php">View all Blog</a></span></h3>
+                        </div>
+                        <div class="card-body">
+                            <?php
+                            if (isset($_POST['btn'])){
+                                $title       = $_POST['title'];
+                                $description = $_POST['application'];
+                                $image      = $_FILES['image']['name'];
+
+
+                                //validation
+
+                                if ($title == "")
+                                {
+                                    $_SESSION['title'] = 'Please Enter Title';
+                                }
+                                if ($description == "")
+                                {
+                                    $_SESSION['desc'] = 'Please Write Blog';
+                                }
+                                if ($image == "")
+                                {
+                                    $_SESSION['image'] = 'Please Chose A Image';
+                                }
+
+                                if ($title && $description && $image){
+                                    $create = @date('Y-m-d H:i:s');
+
+                                    $fileinfo = PATHINFO($_FILES['image']['name']);
+                                    $newFile = $fileinfo['filename']. "." . $fileinfo['extension'];
+                                    move_uploaded_file($_FILES['image']['tmp_name'], "../images/" .$newFile);
+                                    $location = $newFile;
+
+                                    $sql = "INSERT INTO blogs (title, application, image, date, status) VALUES ('$title', '$description', '$image', '$create','0')"; // insert blg data into databse
+                                    $res = mysqli_query($connect, $sql); // connect with query and database
+
+                                    $_SESSION['success'] = 'New Blog Created Successfully';
+                                }else{
+                                    $_SESSION['error'] = 'New Blog  Creation Failed..!!';
+                                }
+
+                            }
+                            ?>
+                            <?php
+                            if(isset($_SESSION['title'])){
+                                echo "
+                                    <div class='alert alert-danger alert-dismissible' id='title' style='background-color: red; color: white'>
+                                      <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                      <span><i class='fas fa-exclamation-triangle'></i></span> ".$_SESSION['title']."
+                                    </div>
+                                    ";
+                                unset($_SESSION['title']);
+                            }
+                            if(isset($_SESSION['desc'])){
+                                echo "
+                                    <div class='alert alert-danger alert-dismissible' id='desc' style='background-color: red; color: white'>
+                                      <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                      <span><i class='fas fa-exclamation-triangle'></i></span> ".$_SESSION['desc']."
+                                    </div>
+                                    ";
+                                unset($_SESSION['desc']);
+                            }
+                            if(isset($_SESSION['image'])){
+                                echo "
+                                    <div class='alert alert-danger alert-dismissible' id='image' style='background-color: red; color: white'>
+                                      <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                      <span><i class='fas fa-exclamation-triangle'></i></span> ".$_SESSION['image']."
+                                    </div>
+                                    ";
+                                unset($_SESSION['image']);
+                            }
+                            if(isset($_SESSION['error'])){
+                                echo "
+                                    <div class='alert alert-danger alert-dismissible' id='error' style='background-color: red; color: white'>
+                                      <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                      <span><i class='fas fa-exclamation-triangle'></i></span> ".$_SESSION['error']."
+                                    </div>
+                                    ";
+                                unset($_SESSION['error']);
+                            }
+                            if(isset($_SESSION['success'])){
+                                echo "
+                                    <div class='alert alert-success alert-dismissible'>
+                                      <button type='button' class='close' data-dismiss='alert' aria-hidden='true'>&times;</button>
+                                      <h6><i class='icon fa fa-check'></i> Success!</h6>
+                                      ".$_SESSION['success']."
+                                    </div>
+                                  ";
+                                unset($_SESSION['success']);
+                            }
+                            ?>
+                            <form action="" method="post" enctype="multipart/form-data">
+                                <div class="form-group">
+                                    <label>Blog Title</label>
+                                    <input type="text" name="title" placeholder="Enter Name" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea name="application" id="application" class="form-control" placeholder="Enter Brief Description"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Blog Image</label>
+                                    <input type="file" name="image" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label></label>
+                                    <input type="submit" name="btn" class="btn btn-success" value="Add New Blog">
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.container-fluid -->
+
+        <!-- Sticky Footer -->
+        <?php include "front/sub_footer.php";?>
+    </div>
+    <!-- /.content-wrapper -->
+</div>
+<!-- /#wrapper -->
+
+
+<?php include "front/footer.php";?>
+
+<script>
+    //validation message
+    $(function() {
+        setTimeout(function() { $("#title").fadeOut(1500); }, 3000)
+    })
+    $(function() {
+        setTimeout(function() { $("#desc").fadeOut(1500); }, 3000)
+    })
+    $(function() {
+        setTimeout(function() { $("#image").fadeOut(1500); }, 3000)
+    })
+    $(function() {
+        setTimeout(function() { $("#error").fadeOut(1500); }, 3000)
+    })
+</script>
+<script>
+    CKEDITOR.replace('application',
+        {
+            height:300,
+            resize_enabled:true,
+            wordcount: {
+                showParagraphs: false,
+                showWordCount: true,
+                showCharCount: true,
+                countSpacesAsChars: true,
+                countHTML: false,
+
+                maxCharCount: 20}
+        });
+</script>
+</body>
+</html>
+
+
+
